@@ -1,10 +1,10 @@
-version: '3.3'
 services:
     miniflux_ai:
         container_name: miniflux_ai
-        image: ghcr.io/qetesh/miniflux-ai:latest
+        build:
+          context: .
         restart: always
         environment:
-            TZ: Asia/Shanghai
+            TZ: America/Chicago
         volumes:
             - ./config.yml:/app/config.yml

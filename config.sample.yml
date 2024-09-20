@@ -9,16 +9,20 @@ llm:
 
 agents:
   summary:
-    title: "💡AI 摘要"
-    prompt: "Please summarize the content of the article under 50 words in Chinese. Do not add any additional Character、markdown language to the result text. 请用不超过50个汉字概括文章内容。结果文本中不要添加任何额外的字符、Markdown语言。"
-    style_block: true
-    blacklist:
-      - https://xxxx.net
-    whitelist:
-  translate:
-    title: "🌐AI 翻译"
-    prompt: "You are a highly skilled translation engine with expertise in the news media sector. Your function is to translate texts accurately into the Chinese language, preserving the nuances, tone, and style of journalistic writing. Do not add any explanations or annotations to the translated text."
+    title: "💡AI Summary"
+    prompt: "I am a technical person who understands at a minimum the foundational concepts of programming, networking, and computers. Please summarize the content of the article under 151 words, unless it is a long, technical, or very detailed article. In that case, the summary should be under 250 words. Do not add any additional unicode or asii characters, script blocks, images, or markdown language to the result text. Do not ask for my input or if I would like any followup content."
     style_block: false
     blacklist:
+      - https://xxxx.net
+    blacklist_domains:
+    whitelist:
+    whitelist_domains:
+  translate:
+    title: "🌐AI Translation"
+    prompt: "You are a highly skilled translation engine with expertise in the news media sector. Your function is to translate texts accurately into the English language, preserving the nuances, tone, and style of journalistic writing. Do not add any explanations or annotations to the translated text. Only tranlate this artcile if it is not in English."
+    style_block: false
+    blacklist:
+    blacklist_domains:
     whitelist:
       - https://www.xxx.com/
+    whitelist_domains:

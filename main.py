@@ -23,11 +23,27 @@ def process_entry(entry):
             {"role": "user", "content": "The following is the input content:\n---\n " + md(entry['content']) }
         ]
         # filter, if AI is not generating, and in whitelist, or not in blacklist
+#        if ((not entry['content'].startswith(tuple(start_with_list))) and
+#                (((agent[1]['whitelist'] is not None) and (entry['feed']['site_url'] in agent[1]['whitelist']) or (agent[1]['whitelist_domains'] is not None and any(domain in entry['feed']['site_url'] for agent[1]['whitelist_domains'])) ) or
+#                 (agent[1]['blacklist'] is not None and entry['feed']['site_url'] not in agent[1]['blacklist'] and (agent[1]['blacklist_domains'] is not None and not any(domain in entry['feed']['site_url'] for agent[1]['blacklist_domains']))) or
+#                 (agent[1]['whitelist'] is None and agent[1]['blacklist'] is None))):
         if ((not entry['content'].startswith(tuple(start_with_list))) and
-                (((agent[1]['whitelist'] is not None) and (entry['feed']['site_url'] in agent[1]['whitelist'])) or
-                 (agent[1]['blacklist'] is not None and entry['feed']['site_url'] not in agent[1]['blacklist']) or
-                 (agent[1]['whitelist'] is None and agent[1]['blacklist'] is None))):
-            completion = llm_client.chat.completions.create( model=config['llm']['model'], messages= messages, timeout=15 )
+            (
+                # Check if entry is whitelisted (whitelist and whitelist_domains)
+                (
+                    (agent[1]['whitelist'] is not None and entry['feed']['site_url'] in agent[1]['whitelist']) or
+                    (agent[1]['whitelist_domains'] is not None and any(domain in entry['feed']['site_url'] for domain in agent[1]['whitelist_domains']))
+                ) or
+                # Check if entry is not blacklisted (blacklist and blacklist_domains)
+                (
+                    (agent[1]['blacklist'] is not None and entry['feed']['site_url'] not in agent[1]['blacklist']) or
+                    (agent[1]['blacklist_domains'] is not None and not any(domain in entry['feed']['site_url'] for domain in agent[1]['blacklist_domains']))
+                ) or
+                # If no restrictions are defined
+                (agent[1]['whitelist'] is None and agent[1]['blacklist'] is None and agent[1]['whitelist_domains'] is None and agent[1]['blacklist_domains'] is None)
+            )
+        ):
+            completion = llm_client.chat.completions.create( model=config['llm']['model'], messages= messages, timeout=120 )
             response_content = completion.choices[0].message.content
             print(time.strftime("%Y/%m/%d %H:%M:%S", time.localtime()), agent[0], entry['feed']['feed_url'], response_content)
 
@@ -47,7 +63,7 @@ while True:
     start_time = time.time()
     print(time.strftime("%Y/%m/%d %H:%M:%S", time.localtime()), 'Fetched unread entries: ' + str(len(entries['entries']))) if len(entries['entries']) > 0 else print(time.strftime("%Y/%m/%d %H:%M:%S", time.localtime()), 'No new entries')
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
         futures = [executor.submit(process_entry, i) for i in entries['entries']]
         for future in concurrent.futures.as_completed(futures):
             try:
@@ -57,4 +73,4 @@ while True:
 
     if len(entries['entries']) > 0 and time.time() - start_time >= 3:
         print(time.strftime("%Y/%m/%d %H:%M:%S", time.localtime()), 'Done')
-    time.sleep(60)
+    time.sleep(60 * 15)
